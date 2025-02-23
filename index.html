@@ -24,9 +24,9 @@
     <script>
         const canvas = document.getElementById("wheelCanvas");
         const ctx = canvas.getContext("2d");
-        const segments = ["100", "50", "Try Again", "200", "500", "Mystery"]; 
+        const segments = ["100 Coins", "50 Coins", "Try Again", "200 Coins", "500 Coins", "Mystery Prize"];
         const colors = ["#ffcc00", "#ff6600", "#ff3300", "#cc33ff", "#3399ff", "#33cc33"];
-        let spinning = false, angle = 0, spinSpeed = 0;
+        let spinning = false, angle = 0;
 
         function drawWheel() {
             const centerX = canvas.width / 2, centerY = canvas.height / 2, radius = 140;
@@ -44,8 +44,12 @@
                 ctx.fillStyle = "#fff";
                 ctx.font = "bold 14px Arial";
                 ctx.textAlign = "center";
-                ctx.fillText(segments[i], centerX + Math.cos(startAngle + sliceAngle / 2) * 100, 
+                ctx.save();
+                ctx.translate(centerX + Math.cos(startAngle + sliceAngle / 2) * 100, 
                              centerY + Math.sin(startAngle + sliceAngle / 2) * 100);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.fillText(segments[i], 0, 0);
+                ctx.restore();
                 
                 startAngle += sliceAngle;
             }
@@ -75,8 +79,8 @@
                 } else {
                     spinning = false;
                     let finalAngle = angle % 360;
-                    let winningIndex = Math.floor(finalAngle / (360 / segments.length));
-                    document.getElementById("result").innerText = "🎉 You won: " + segments[winningIndex] + " Coins!";
+                    let winningIndex = Math.floor((360 - finalAngle) / (360 / segments.length)) % segments.length;
+                    document.getElementById("result").innerText = "🎉 You won: " + segments[winningIndex] + "!";
                 }
             }
             requestAnimationFrame(animate);
