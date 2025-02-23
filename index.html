@@ -3,88 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roulette Game</title>
+    <title>Spin the Wheel</title>
     <style>
-        body {
-            text-align: center;
-            font-family: Arial, sans-serif;
-            background: #f4f4f4;
-        }
-        .roulette-container {
-            position: relative;
-            width: 200px;
-            height: 200px;
-            margin: 20px auto;
-        }
-        .roulette-wheel {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 5px solid #000;
-            background: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: transform 1.5s ease-out;
-        }
-        .spin-btn {
-            padding: 10px 20px;
-            font-size: 18px;
-            background: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+        body { text-align: center; font-family: Arial, sans-serif; background: #f4f4f4; }
+        canvas { margin-top: 20px; background: #fff; border-radius: 50%; }
+        button { margin-top: 20px; padding: 10px 20px; font-size: 18px; cursor: pointer; background: #28a745; color: white; border: none; }
     </style>
 </head>
 <body>
-
-    <h2>🎡 Telegram Roulette Game 🎡</h2>
-    <div class="roulette-container">
-        <div class="roulette-wheel" id="wheel">🔄</div>
-    </div>
-    <button class="spin-btn" onclick="spinWheel()">Spin & Win!</button>
+    <h2>🎡 Spin the Wheel!</h2>
+    <canvas id="wheelCanvas" width="300" height="300"></canvas>
+    <br>
+    <button onclick="spinWheel()">Spin Now</button>
+    <p id="result"></p>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        tg.expand(); // Expand WebApp to full screen
-        let chatId = tg.initDataUnsafe?.user?.id || null;
+        const canvas = document.getElementById("wheelCanvas");
+        const ctx = canvas.getContext("2d");
+        const sections = ["100 Coins", "50 Coins", "200 Coins", "Lose", "500 Coins", "Try Again"];
+        let spinning = false;
 
-        let prizes = ["100 coins 🏆", "50 coins 🎉", "30 coins 🎊", "10 coins 🪙", "5 coins 💰", "Try again! ❌"];
-        let wheel = document.getElementById("wheel");
+        function drawWheel() {
+            const slice = (2 * Math.PI) / sections.length;
+            sections.forEach((text, i) => {
+                ctx.beginPath();
+                ctx.moveTo(150, 150);
+                ctx.arc(150, 150, 150, slice * i, slice * (i + 1));
+                ctx.fillStyle = i % 2 ? "#f39c12" : "#d35400";
+                ctx.fill();
+                ctx.stroke();
+                
+                // Set text properties
+                ctx.fillStyle = "#fff";
+                ctx.font = "12px Arial";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+
+                // Calculate text position
+                let angle = slice * (i + 0.5);
+                let x = 150 + Math.cos(angle) * 100;
+                let y = 150 + Math.sin(angle) * 100;
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(angle + Math.PI / 2);
+                ctx.fillText(text, 0, 0);
+                ctx.restore();
+            });
+        }
 
         function spinWheel() {
-            let randomIndex = Math.floor(Math.random() * prizes.length);
-            let result = prizes[randomIndex];
-
-            // Spin effect
-            let randomRotation = 720 + (randomIndex * 60); // Full spins + random stopping point
-            wheel.style.transform = `rotate(${randomRotation}deg)`;
-
+            if (spinning) return;
+            spinning = true;
+            const randomIndex = Math.floor(Math.random() * sections.length);
             setTimeout(() => {
-                wheel.innerText = result; // Display prize after spin
-                sendResultToBot(result);
-            }, 1500);
+                spinning = false;
+                document.getElementById("result").innerText = "🎉 You won: " + sections[randomIndex];
+                
+                // Send result to Telegram bot
+                if (window.Telegram && Telegram.WebApp) {
+                    Telegram.WebApp.sendData(sections[randomIndex]);
+                }
+            }, 2000);
         }
 
-        function sendResultToBot(result) {
-            if (!chatId) {
-                alert("Error: Could not get your Telegram ID.");
-                return;
-            }
-
-            fetch("https://your-server.com/send-result", {  // Replace with your backend URL
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ chat_id: chatId, result: result })
-            })
-            .then(response => response.json())
-            .then(data => console.log("Message sent:", data))
-            .catch(error => console.error("Error:", error));
-        }
+        drawWheel();
     </script>
-
 </body>
 </html>
+
