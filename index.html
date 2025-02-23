@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spin the Wheel</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; background-color: #111; color: white; }
-        canvas { border: 5px solid #333; margin-top: 20px; background: url('/mnt/data/pixelcut-export.jpg') center/cover no-repeat; }
+        body { text-align: center; font-family: Arial, sans-serif; }
+        canvas { border: 5px solid #333; margin-top: 20px; }
         button { margin-top: 20px; padding: 10px 20px; font-size: 18px; cursor: pointer; }
         .arrow {
             position: absolute;
-            top: 120px;
+            top: 100px;
             left: 50%;
             transform: translateX(-50%);
             width: 0; 
@@ -32,7 +32,7 @@
     <script>
         const canvas = document.getElementById("wheelCanvas");
         const ctx = canvas.getContext("2d");
-        const segments = ["100", "50", "Try Again", "200", "500", "Mystery Prize"]; 
+        const segments = ["100", "50", "Try Again", "200", "500", "Mystery"]; 
         const colors = ["#ffcc00", "#ff6600", "#ff3300", "#cc33ff", "#3399ff", "#33cc33"];
         let spinning = false, angle = 0;
 
@@ -88,18 +88,6 @@
                     document.getElementById("result").innerText = "🎉 You won: " + segments[winningIndex] + "!";
                 }
             }
-            requestAnimationFrame(animate);
-        }
-        
-        function easeOut(t) {
-            return 1 - Math.pow(1 - t, 3); 
-        }
-        
-        drawWheel();
-    </script>
-</body>
-</html>
-
             requestAnimationFrame(animate);
         }
         
