@@ -5,66 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spin the Wheel</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; background: #f4f4f4; }
-        canvas { margin-top: 20px; background: #fff; border-radius: 50%; }
-        button { margin-top: 20px; padding: 10px 20px; font-size: 18px; cursor: pointer; background: #28a745; color: white; border: none; }
+        body { text-align: center; font-family: Arial, sans-serif; }
+        canvas { border: 5px solid #333; }
+        button { margin-top: 20px; padding: 10px 20px; font-size: 18px; }
     </style>
 </head>
 <body>
-    <h2>🎡 Spin the Wheel!</h2>
+    <h2>Spin the Wheel & Win Rewards!</h2>
     <canvas id="wheelCanvas" width="300" height="300"></canvas>
     <br>
-    <button onclick="spinWheel()">Spin Now</button>
+    <button onclick="spinWheel()">Spin</button>
     <p id="result"></p>
 
     <script>
         const canvas = document.getElementById("wheelCanvas");
         const ctx = canvas.getContext("2d");
-        const sections = ["100 Coins", "50 Coins", "200 Coins", "Lose", "500 Coins", "Try Again"];
+        const segments = ["100 Coins", "50 Coins", "Try Again", "200 Coins", "500 Coins", "Mystery Prize"];
+        const colors = ["#ffcc00", "#ff6600", "#ff3300", "#cc33ff", "#3399ff", "#33cc33"];
         let spinning = false;
 
         function drawWheel() {
-            const slice = (2 * Math.PI) / sections.length;
-            sections.forEach((text, i) => {
+            const centerX = canvas.width / 2, centerY = canvas.height / 2, radius = 140;
+            let angle = 0;
+            for (let i = 0; i < segments.length; i++) {
                 ctx.beginPath();
-                ctx.moveTo(150, 150);
-                ctx.arc(150, 150, 150, slice * i, slice * (i + 1));
-                ctx.fillStyle = i % 2 ? "#f39c12" : "#d35400";
+                ctx.fillStyle = colors[i];
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, angle + (2 * Math.PI / segments.length));
                 ctx.fill();
                 ctx.stroke();
-                
-                // Set text properties
-                ctx.fillStyle = "#fff";
-                ctx.font = "12px Arial";
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-
-                // Calculate text position
-                let angle = slice * (i + 0.5);
-                let x = 150 + Math.cos(angle) * 100;
-                let y = 150 + Math.sin(angle) * 100;
-
-                ctx.save();
-                ctx.translate(x, y);
-                ctx.rotate(angle + Math.PI / 2);
-                ctx.fillText(text, 0, 0);
-                ctx.restore();
-            });
+                ctx.fillStyle = "#000";
+                ctx.font = "16px Arial";
+                ctx.fillText(segments[i], centerX + Math.cos(angle + Math.PI / segments.length) * 100 - 20, 
+                    centerY + Math.sin(angle + Math.PI / segments.length) * 100 + 5);
+                angle += 2 * Math.PI / segments.length;
+            }
         }
 
         function spinWheel() {
             if (spinning) return;
             spinning = true;
-            const randomIndex = Math.floor(Math.random() * sections.length);
-            setTimeout(() => {
-                spinning = false;
-                document.getElementById("result").innerText = "🎉 You won: " + sections[randomIndex];
-                
-                // Send result to Telegram bot
-                if (window.Telegram && Telegram.WebApp) {
-                    Telegram.WebApp.sendData(sections[randomIndex]);
+            let spinTime = 3000;
+            let randomAngle = Math.random() * 360 + 1440; 
+            let start = Date.now();
+
+            function animate() {
+                let elapsed = Date.now() - start;
+                if (elapsed < spinTime) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.save();
+                    ctx.translate(canvas.width / 2, canvas.height / 2);
+                    ctx.rotate((randomAngle * (elapsed / spinTime)) * Math.PI / 180);
+                    ctx.translate(-canvas.width / 2, -canvas.height / 2);
+                    drawWheel();
+                    ctx.restore();
+                    requestAnimationFrame(animate);
+                } else {
+                    spinning = false;
+                    let finalAngle = randomAngle % 360;
+                    let winningIndex = Math.floor(finalAngle / (360 / segments.length));
+                    document.getElementById("result").innerText = "You won: " + segments[winningIndex];
                 }
-            }, 2000);
+            }
+            animate();
         }
 
         drawWheel();
