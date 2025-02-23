@@ -5,18 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Spin the Wheel</title>
     <style>
-        body { text-align: center; font-family: Arial, sans-serif; }
-        canvas { border: 5px solid #333; margin-top: 20px; }
+        body { text-align: center; font-family: Arial, sans-serif; background-color: #111; color: white; }
+        canvas { border: 5px solid #333; margin-top: 20px; background: url('/mnt/data/pixelcut-export.jpg') center/cover no-repeat; }
         button { margin-top: 20px; padding: 10px 20px; font-size: 18px; cursor: pointer; }
+        .arrow {
+            position: absolute;
+            top: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0; 
+            height: 0; 
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-bottom: 30px solid red;
+        }
     </style>
 </head>
 <body>
     <h2>🎡 Spin the Wheel & Win Rewards!</h2>
+    <div class="arrow"></div>
     <canvas id="wheelCanvas" width="300" height="300"></canvas>
-    <br>
-    <svg width="300" height="50">
-        <polygon points="150,0 130,30 170,30" style="fill:red;" />
-    </svg>
     <br>
     <button onclick="spinWheel()">Spin Now</button>
     <p id="result"></p>
@@ -24,7 +32,7 @@
     <script>
         const canvas = document.getElementById("wheelCanvas");
         const ctx = canvas.getContext("2d");
-        const segments = ["100 Coins", "50 Coins", "Try Again", "200 Coins", "500 Coins", "Mystery Prize"];
+        const segments = ["100", "50", "Try Again", "200", "500", "Mystery Prize"]; 
         const colors = ["#ffcc00", "#ff6600", "#ff3300", "#cc33ff", "#3399ff", "#33cc33"];
         let spinning = false, angle = 0;
 
@@ -44,12 +52,8 @@
                 ctx.fillStyle = "#fff";
                 ctx.font = "bold 14px Arial";
                 ctx.textAlign = "center";
-                ctx.save();
-                ctx.translate(centerX + Math.cos(startAngle + sliceAngle / 2) * 100, 
+                ctx.fillText(segments[i], centerX + Math.cos(startAngle + sliceAngle / 2) * 100, 
                              centerY + Math.sin(startAngle + sliceAngle / 2) * 100);
-                ctx.rotate(startAngle + sliceAngle / 2);
-                ctx.fillText(segments[i], 0, 0);
-                ctx.restore();
                 
                 startAngle += sliceAngle;
             }
@@ -79,10 +83,23 @@
                 } else {
                     spinning = false;
                     let finalAngle = angle % 360;
-                    let winningIndex = Math.floor((360 - finalAngle) / (360 / segments.length)) % segments.length;
+                    let sliceAngle = 360 / segments.length;
+                    let winningIndex = Math.floor((360 - finalAngle + sliceAngle / 2) % 360 / sliceAngle);
                     document.getElementById("result").innerText = "🎉 You won: " + segments[winningIndex] + "!";
                 }
             }
+            requestAnimationFrame(animate);
+        }
+        
+        function easeOut(t) {
+            return 1 - Math.pow(1 - t, 3); 
+        }
+        
+        drawWheel();
+    </script>
+</body>
+</html>
+
             requestAnimationFrame(animate);
         }
         
